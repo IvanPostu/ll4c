@@ -1,15 +1,20 @@
 cmake_minimum_required(VERSION 3.9.2)
 
-# set project name
-project(ll4c
-  VERSION 0.0.1
-  DESCRIPTION "A logging library for C"
-  HOMEPAGE_URL "https://github.com/IvanPostu/ll4c"
-  LANGUAGES C)
-
 # include utilities
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(ParseVersion)
+include(EnableWarnings)
+
+parse_changelog_version()
+set(FULL_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
+message(STATUS "Version: ${FULL_VERSION}")
+
+# set project name
+project(ll4c
+  VERSION ${FULL_VERSION}
+  DESCRIPTION "Logging library for C"
+  HOMEPAGE_URL "https://github.com/IvanPostu/ll4c"
+  LANGUAGES C)
 
 option(BUILD_TESTBED "Build the testbed executable" OFF)
 
@@ -21,9 +26,6 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 set(INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include")
 set(SOURCE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(TEST_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/test")
-
-parse_changelog_version()
-message(STATUS "Major: ${VERSION_MAJOR}, Minor: ${VERSION_MINOR}, Patch: ${VERSION_PATCH}")
 
 add_library(ll4c
   "${INCLUDE_DIRECTORY}/ll4c.h"
@@ -38,8 +40,10 @@ target_include_directories(ll4c PUBLIC
 )
 set_target_properties(ll4c PROPERTIES PUBLIC_HEADER "${INCLUDE_DIRECTORY}/ll4c.h")
 set_target_properties(ll4c PROPERTIES DEFINE_SYMBOL API_LL4C)
+enable_warnings(ll4c)
 
 if(BUILD_TESTBED)
   add_executable(ll4c_testbed testbed/src/main.c)
   target_link_libraries(ll4c_testbed PRIVATE ll4c)
+  enable_warnings(ll4c_testbed)
 endif()

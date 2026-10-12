@@ -52,9 +52,20 @@ nix-shell --run bash dev.nix
 cmake \
   -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
   -DBUILD_TESTBED=1 \
+  -DIGNORE_WARNINGS=1 \
   -B build
 
 cmake --build ./build --config Debug
+cmake --build ./build --config Debug --clean-first --verbose
 
 ./build/ll4c_testbed
+```
+
+## Build release
+
+```sh
+cmake \
+  -B build
+
+cmake --build ./build --config Release --clean-first
 ```
