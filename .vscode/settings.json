@@ -1,0 +1,5 @@
+{
+  // "rust-analyzer.server.path": "${workspaceFolder}/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rust-analyzer",
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true
+}

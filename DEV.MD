@@ -1,16 +1,17 @@
 # Dev notes
 
+## Setup dev env shell
+
 ```sh
 nix-shell --run bash dev.nix
 ```
 
-## Build
+## Build and run
 
 ```sh
-mkdir build && cd build
+cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DBUILD_TESTBED=1 -B build
 
-cmake ..
-cmake .. -DBUILD_TESTBED=1
+cmake --build ./build --config Release
 
-cmake --build .
+./build/ll4c_testbed
 ```
