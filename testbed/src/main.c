@@ -1,6 +1,7 @@
 #include "ll4c.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 static void logCallback(LogLevel level, const char *message) {
   FILE *out = stdout;
@@ -12,7 +13,22 @@ static void logCallback(LogLevel level, const char *message) {
   }
 }
 
-int main(void) {
+static void handleVersionCommand(int argc, char **argv) {
+  if (argc == 2 && (strcmp(argv[1], "--version") == 0 || strcmp(argv[1], "-v") == 0)) {
+    printf("v%s\n", APP_VERSION);
+    exit(EXIT_SUCCESS);
+  }
+  for (int i = 1; i < argc; i++) {
+    if (strcmp(argv[i], "--version") == 0 || strcmp(argv[i], "-v") == 0) {
+      fprintf(stderr, "Error: --version cannot be combined with other arguments.\n");
+      exit(EXIT_FAILURE);
+    }
+  }
+}
+
+int main(int argc, char **argv) {
+  handleVersionCommand(argc, argv);
+
   PtrLogCallback logFuncPtr = logCallback;
   ll4cRegisterLogCallback(logFuncPtr);
 
