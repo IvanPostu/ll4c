@@ -1,6 +1,8 @@
 #include "ll4c.h"
 
+#include <limits.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -45,11 +47,25 @@ static char *string_format_v(LogLevel level, const char *format, va_list va_list
   return buffer;
 }
 
+static bool parseUnsignedInt(const char *str, unsigned int *value) {
+  char *endptr;
+  unsigned long val = strtoul(str, &endptr, 10);
+
+  if (endptr == str) {
+    return false;
+  } else if (val > UINT_MAX) {
+    return false;
+  } else {
+    *value = (unsigned int)val;
+    return true;
+  }
+}
+
 void ll4cRegisterLogCallback(PtrLogCallback callback) {
   ptr_LogCallback = callback;
 }
 
-void ll4cLogMessage(LogLevel level, const char *message, ...) {
+void _ll4cLogMessage(LogLevel level, const char *message, ...) {
   __builtin_va_list arg_ptr;
   va_start(arg_ptr, message);
   if (ptr_LogCallback) {
@@ -58,4 +74,17 @@ void ll4cLogMessage(LogLevel level, const char *message, ...) {
     free(result);
   }
   va_end(arg_ptr);
+}
+
+bool ll4cGetVersionInfo(unsigned int *major, unsigned int *minor, unsigned int *patch) {
+  if (!parseUnsignedInt(APP_VERSION_MAJOR, major)) {
+    return false;
+  }
+  if (!parseUnsignedInt(APP_VERSION_MINOR, minor)) {
+    return false;
+  }
+  if (!parseUnsignedInt(APP_VERSION_PATCH, patch)) {
+    return false;
+  }
+  return true;
 }
