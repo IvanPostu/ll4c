@@ -47,5 +47,11 @@ int main(int argc, char **argv) {
   L_ERROR("Example %d", n);
   L_FATAL("Example %d", n);
 
+  char str[2051];
+  memset(str, 'a', 2050);
+  str[2050] = '\0';
+
+  L_INFO("%s", str);
+
   return EXIT_SUCCESS;
 }

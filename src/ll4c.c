@@ -13,6 +13,9 @@
 #  define VSNPRINTF vsnprintf
 #endif
 
+#define CACHE_LENGTH 2048
+static char CACHE_STR[CACHE_LENGTH];
+
 #define LEVEL_STR_LENGTH 9
 static const char levelStrings[6][LEVEL_STR_LENGTH] = {"[FATAL]: ",
                                                        "[ERROR]: ",
@@ -22,7 +25,7 @@ static const char levelStrings[6][LEVEL_STR_LENGTH] = {"[FATAL]: ",
                                                        "[TRACE]: "};
 static PtrLogCallback ptr_LogCallback = 0;
 
-static char *string_format_v(LogLevel level, const char *format, va_list va_listp) {
+static int string_formatted_len(const char *format, va_list va_listp) {
   if (!format) {
     return 0;
   }
@@ -33,18 +36,10 @@ static char *string_format_v(LogLevel level, const char *format, va_list va_list
   va_copy(va_listp2, va_listp);
 
   int len = VSNPRINTF(NULL, 0, format, va_listp2);
-  const int totalLen = LEVEL_STR_LENGTH + len + 1; // level + str + '\0'
-  char *buffer = malloc(totalLen);
-  if (!buffer) {
-    return 0;
-  }
-  VSNPRINTF(LEVEL_STR_LENGTH + buffer, totalLen, format, va_listp);
-  memcpy(buffer, levelStrings[level], LEVEL_STR_LENGTH);
 
   va_end(va_listp2);
 
-  buffer[totalLen - 1] = '\0';
-  return buffer;
+  return len;
 }
 
 static bool parseUnsignedInt(const char *str, unsigned int *value) {
@@ -61,6 +56,35 @@ static bool parseUnsignedInt(const char *str, unsigned int *value) {
   }
 }
 
+static inline void internalLog(LogLevel level, const char *format, va_list va_listp) {
+  if (!ptr_LogCallback) {
+    return;
+  }
+  if (!format) {
+    return;
+  }
+
+  int formattedLength = string_formatted_len(format, va_listp);
+  const int totalLen = LEVEL_STR_LENGTH + formattedLength + 1; // level + str + '\0'
+  char *buffer;
+
+  if (totalLen <= CACHE_LENGTH) {
+    buffer = CACHE_STR;
+  } else {
+    buffer = malloc(totalLen);
+  }
+
+  VSNPRINTF(LEVEL_STR_LENGTH + buffer, totalLen, format, va_listp);
+  memcpy(buffer, levelStrings[level], LEVEL_STR_LENGTH);
+  buffer[totalLen - 1] = '\0';
+
+  ptr_LogCallback(level, buffer);
+
+  if (&buffer[0] != CACHE_STR) {
+    free(buffer);
+  }
+}
+
 void ll4cRegisterLogCallback(PtrLogCallback callback) {
   ptr_LogCallback = callback;
 }
@@ -68,11 +92,7 @@ void ll4cRegisterLogCallback(PtrLogCallback callback) {
 void _ll4cLogMessage(LogLevel level, const char *message, ...) {
   __builtin_va_list arg_ptr;
   va_start(arg_ptr, message);
-  if (ptr_LogCallback) {
-    char *result = string_format_v(level, message, arg_ptr);
-    ptr_LogCallback(level, result);
-    free(result);
-  }
+  internalLog(level, message, arg_ptr);
   va_end(arg_ptr);
 }
 

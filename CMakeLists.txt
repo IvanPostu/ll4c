@@ -17,6 +17,7 @@ project(ll4c
   LANGUAGES C)
 
 option(BUILD_TESTBED "Build the testbed executable" OFF)
+option(INCLUDE_DEBUG_SYMBOLS "Include debug symbols in the build" OFF)
 
 # configure requirements
 set(CMAKE_C_STANDARD 11)
@@ -41,9 +42,15 @@ target_include_directories(ll4c PUBLIC
 set_target_properties(ll4c PROPERTIES PUBLIC_HEADER "${INCLUDE_DIRECTORY}/ll4c.h")
 set_target_properties(ll4c PROPERTIES DEFINE_SYMBOL API_LL4C)
 enable_warnings(ll4c)
+if(INCLUDE_DEBUG_SYMBOLS)
+  target_compile_options(ll4c PRIVATE -g -O0)
+endif()
 
 if(BUILD_TESTBED)
   add_executable(ll4c_testbed testbed/src/main.c)
   target_link_libraries(ll4c_testbed PRIVATE ll4c)
   enable_warnings(ll4c_testbed)
+  if(INCLUDE_DEBUG_SYMBOLS)
+    target_compile_options(ll4c_testbed PRIVATE -g -O0)
+  endif()
 endif()

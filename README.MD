@@ -53,6 +53,7 @@ cmake \
   -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
   -DBUILD_TESTBED=1 \
   -DIGNORE_WARNINGS=1 \
+  -DINCLUDE_DEBUG_SYMBOLS=1 \
   -B build
 
 cmake --build ./build --config Debug
