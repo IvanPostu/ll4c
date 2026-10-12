@@ -13,6 +13,7 @@ in
   buildInputs = [
     pkgs.clang-tools
     pkgs.gnumake
+    pkgs.cmake
   ];
 
   env = {
