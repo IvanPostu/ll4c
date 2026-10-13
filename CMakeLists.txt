@@ -47,7 +47,14 @@ if(INCLUDE_DEBUG_SYMBOLS)
 endif()
 
 if(BUILD_TESTBED)
-  add_executable(ll4c_testbed testbed/src/main.c)
+  add_executable(ll4c_testbed
+    testbed/src/main.c
+    testbed/src/cli_arg_resolver.c
+    testbed/src/cmd_version.c
+    testbed/src/cmd1_log_example.c
+    testbed/src/cmd2_async_log_worker.c
+  )
+  target_include_directories(ll4c_testbed PRIVATE testbed/src)
   target_link_libraries(ll4c_testbed PRIVATE ll4c)
   enable_warnings(ll4c_testbed)
   if(INCLUDE_DEBUG_SYMBOLS)
