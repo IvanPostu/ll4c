@@ -28,9 +28,13 @@ set(INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include")
 set(SOURCE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(TEST_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/test")
 
+file(GLOB LL4C_PRIVATE_SOURCES "${SOURCE_DIRECTORY}/*.c")
+file(GLOB LL4C_PRIVATE_HEADERS "${SOURCE_DIRECTORY}/*.h")
+
 add_library(ll4c
   "${INCLUDE_DIRECTORY}/ll4c.h"
-  "${SOURCE_DIRECTORY}/ll4c.c")
+  ${LL4C_PRIVATE_SOURCES}
+  ${LL4C_PRIVATE_HEADERS})
 target_compile_definitions(ll4c PRIVATE
   APP_VERSION_MAJOR="${VERSION_MAJOR}"
   APP_VERSION_MINOR="${VERSION_MINOR}"
@@ -53,6 +57,7 @@ if(BUILD_TESTBED)
     testbed/src/cmd_version.c
     testbed/src/cmd1_log_example.c
     testbed/src/cmd2_async_log_worker.c
+    testbed/src/cmd3_async_log_usage.c
   )
   target_include_directories(ll4c_testbed PRIVATE testbed/src)
   target_link_libraries(ll4c_testbed PRIVATE ll4c)

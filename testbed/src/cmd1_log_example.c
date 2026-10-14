@@ -8,19 +8,23 @@
 #include <stdlib.h>
 #include <string.h>
 
-static void logCallback(LogLevel level, const char *message) {
-  FILE *out = stdout;
-  FILE *err = stderr;
+static void logCallback(
+    LogLevel level,
+    const char *codeFilename,
+    int codeLine,
+    const char *formattedMessage) {
+  FILE *output = stdout;
+  const char *logLevelStr = ll4cLogLevelAsStr(level);
+
   if (level == LL4C_FATAL || level == LL4C_ERROR) {
-    fprintf(err, "%s\n", message);
-  } else {
-    fprintf(out, "%s\n", message);
+    output = stderr;
   }
+
+  fprintf(output, "[%s](%s:%d): %s\n", logLevelStr, codeFilename, codeLine, formattedMessage);
 }
 
 void handleCmd1(void) {
-  PtrLogCallback logFuncPtr = logCallback;
-  ll4cRegisterLogCallback(logFuncPtr);
+  ll4cRegisterLogCallback(logCallback);
 
   int n = 123;
   L_TRACE("Example %d", n);

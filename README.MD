@@ -1,47 +1,99 @@
 # Logging library for C - (LL4C)
 
-Minimal C logging library which I use for my other C projects.
+C logging library which I use for my other C projects.
 
-## Usage
+## Integration
+
+### Build
 
 1. Build static library (`build/libll4c.a`)
 
     ```sh
     cmake -B build
+
     cmake --build ./build --config Release
     ```
 
+1. Use API: `include/ll4c.h`
 1. Statically link `build/libll4c.a` to the executable program
-    - Use header file: `include/ll4c.h`
 
-1. Example of usage:
+### Usage - synchronous mode
 
-    ```c
-    static void logCallback(LogLevel level, const char *message) {
-      FILE *out = stdout;
-      FILE *err = stderr;
-      if (level == LL4C_FATAL || level == LL4C_ERROR) {
-        fprintf(err, "%s\n", message);
-      } else {
-        fprintf(out, "%s\n", message);
-      }
-    }
+```c
+#include "ll4c.h"
+// ...
 
-    int main(int argc, char **argv) {
-      PtrLogCallback logFuncPtr = logCallback;
-      ll4cRegisterLogCallback(logFuncPtr);
+static void logCallback(
+    LogLevel level,
+    const char *codeFilename,
+    int codeLine,
+    const char *formattedMessage) {
+  FILE *output = stdout;
+  const char *logLevelStr = ll4cLogLevelAsStr(level);
 
-      int n = 123;
-      L_TRACE("Example %d", n);
-      L_DEBUG("Example %d", n);
-      L_INFO("Example %d", n);
-      L_WARN("Example %d", n);
-      L_ERROR("Example %d", n);
-      L_FATAL("Example %d", n);
+  if (level == LL4C_FATAL || level == LL4C_ERROR) {
+    output = stderr;
+  }
 
-      return EXIT_SUCCESS;
-    }
-    ```
+  fprintf(output, "[%s](%s:%d): %s\n", logLevelStr, codeFilename, codeLine, formattedMessage);
+}
+
+void example(void) {
+  ll4cRegisterLogCallback(logCallback);
+
+  int n = 123;
+  L_TRACE("Example %d", n);
+  L_DEBUG("Example %d", n);
+  L_INFO("Example %d", n);
+  L_WARN("Example %d", n);
+  L_ERROR("Example %d", n);
+  L_FATAL("Example %d", n);
+
+  exit(EXIT_SUCCESS);
+}
+```
+
+### Usage - asynchronous mode
+
+```c
+#include "ll4c.h"
+// ...
+
+static void logCallback(
+    LogLevel level,
+    const char *codeFilename,
+    int codeLine,
+    const char *formattedMessage) {
+  FILE *output = stdout;
+  const char *logLevelStr = ll4cLogLevelAsStr(level);
+
+  if (level == LL4C_FATAL || level == LL4C_ERROR) {
+    output = stderr;
+  }
+
+  fprintf(output, "[%s](%s:%d): %s\n", logLevelStr, codeFilename, codeLine, formattedMessage);
+}
+
+void example(void) {
+  ll4cRegisterLogCallback(logCallback);
+  bool asyncEnabled = ll4cStartupAsyncMode();
+  assert(asyncEnabled);
+
+  int n = 123;
+  L_TRACE("Example %d", n);
+  L_DEBUG("Example %d", n);
+  L_INFO("Example %d", n);
+  L_WARN("Example %d", n);
+  L_ERROR("Example %d", n);
+  L_FATAL("Example %d", n);
+
+  exit(EXIT_SUCCESS);
+}
+```
+
+## Changelog
+
+See [CHANGELOG.MD](./CHANGELOG.MD)
 
 ## Setup dev env
 
@@ -49,6 +101,7 @@ Minimal C logging library which I use for my other C projects.
 # cmake, gcc-v13, clangd(C language LSP), clang-formatter ...
 nix-shell --run bash dev.nix
 
+# build - dev mode
 cmake \
   -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
   -DBUILD_TESTBED=1 \
@@ -59,14 +112,6 @@ cmake \
 cmake --build ./build --config Debug
 cmake --build ./build --config Debug --clean-first --verbose
 
-./build/ll4c_testbed
-```
-
-## Build release
-
-```sh
-cmake \
-  -B build
-
-cmake --build ./build --config Release --clean-first
+# run
+./build/ll4c_testbed --cmd1
 ```

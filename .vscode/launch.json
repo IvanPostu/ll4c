@@ -9,7 +9,7 @@
             "type": "lldb",
             "request": "launch",
             "program": "${workspaceFolder}/build/ll4c_testbed",
-            "args": [],
+            "args": ["--cmd3"],
             "cwd": "${workspaceFolder}",
             "stopOnEntry": false
         }

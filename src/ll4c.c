@@ -1,11 +1,16 @@
 #include "ll4c.h"
 
+#include "_shared.h"
 #include <limits.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#ifndef EXCLUDE_ASYNC_MODE
+#  include "ll4c_async.h"
+#endif
 
 #ifdef _WIN64
 #  define VSNPRINTF vsnprintf_s
@@ -16,14 +21,11 @@
 #define CACHE_LENGTH 2048
 static char CACHE_STR[CACHE_LENGTH];
 
-#define LEVEL_STR_LENGTH 9
-static const char levelStrings[6][LEVEL_STR_LENGTH] = {"[FATAL]: ",
-                                                       "[ERROR]: ",
-                                                       "[WARN]:  ",
-                                                       "[INFO]:  ",
-                                                       "[DEBUG]: ",
-                                                       "[TRACE]: "};
 static PtrLogCallback ptr_LogCallback = 0;
+
+#ifndef EXCLUDE_ASYNC_MODE
+static bool isAsyncModeActive = false;
+#endif
 
 static int string_formatted_len(const char *format, va_list va_listp) {
   if (!format) {
@@ -42,21 +44,7 @@ static int string_formatted_len(const char *format, va_list va_listp) {
   return len;
 }
 
-static bool parseUnsignedInt(const char *str, unsigned int *value) {
-  char *endptr;
-  unsigned long val = strtoul(str, &endptr, 10);
-
-  if (endptr == str) {
-    return false;
-  } else if (val > UINT_MAX) {
-    return false;
-  } else {
-    *value = (unsigned int)val;
-    return true;
-  }
-}
-
-static inline void internalLog(LogLevel level, const char *format, va_list va_listp) {
+static inline void internalLog(LogLevel level, const char *codeFilename, int codeLine, const char *format, va_list va_listp) {
   if (!ptr_LogCallback) {
     return;
   }
@@ -65,34 +53,46 @@ static inline void internalLog(LogLevel level, const char *format, va_list va_li
   }
 
   int formattedLength = string_formatted_len(format, va_listp);
-  const int totalLen = LEVEL_STR_LENGTH + formattedLength + 1; // level + str + '\0'
+  const int totalLen = formattedLength + 1; // str + '\0'
   char *buffer;
 
-  if (totalLen <= CACHE_LENGTH) {
+#ifdef EXCLUDE_ASYNC_MODE
+#  define _isAsyncModeActive false
+#  define _asyncPublishMsg(msg)
+#else
+#  define _asyncModeActive isAsyncModeActive
+#  define _asyncPublishMsg(level, codeFilename, codeLine, msg) publishLogMessage(level, codeFilename, codeLine, msg)
+#endif
+
+  if (totalLen <= CACHE_LENGTH && !_asyncModeActive) {
     buffer = CACHE_STR;
   } else {
     buffer = malloc(totalLen);
   }
 
-  VSNPRINTF(LEVEL_STR_LENGTH + buffer, totalLen, format, va_listp);
-  memcpy(buffer, levelStrings[level], LEVEL_STR_LENGTH);
+  VSNPRINTF(buffer, totalLen, format, va_listp);
   buffer[totalLen - 1] = '\0';
 
-  ptr_LogCallback(level, buffer);
+  if (_asyncModeActive) {
+    _asyncPublishMsg(level, codeFilename, codeLine, buffer);
+  } else {
+    ptr_LogCallback(level, codeFilename, codeLine, buffer);
 
-  if (&buffer[0] != CACHE_STR) {
-    free(buffer);
+    if (&buffer[0] != CACHE_STR) {
+      free(buffer);
+    }
   }
+#undef _asyncModeActive
 }
 
 void ll4cRegisterLogCallback(PtrLogCallback callback) {
   ptr_LogCallback = callback;
 }
 
-void _ll4cLogMessage(LogLevel level, const char *message, ...) {
+void _ll4cLogMessage(LogLevel level, const char *codeFilename, int codeLine, const char *format, ...) {
   __builtin_va_list arg_ptr;
-  va_start(arg_ptr, message);
-  internalLog(level, message, arg_ptr);
+  va_start(arg_ptr, format);
+  internalLog(level, codeFilename, codeLine, format, arg_ptr);
   va_end(arg_ptr);
 }
 
@@ -107,4 +107,26 @@ bool ll4cGetVersionInfo(unsigned int *major, unsigned int *minor, unsigned int *
     return false;
   }
   return true;
+}
+
+bool ll4cStartupAsyncMode(void) {
+#ifdef EXCLUDE_ASYNC_MODE
+  return false;
+#else
+  if (!ptr_LogCallback) {
+    return false;
+  }
+  startup_ThreadUnsafe(ptr_LogCallback, 500L);
+  return (isAsyncModeActive = true);
+#endif
+}
+
+void ll4cShutdownAsyncMode(void) {
+#ifndef EXCLUDE_ASYNC_MODE
+  shutdown_ThreadUnsafe();
+#endif
+}
+
+const char *ll4cLogLevelAsStr(LogLevel logLevel) {
+  return LOG_LEVELS_AS_STRINGS[logLevel];
 }
