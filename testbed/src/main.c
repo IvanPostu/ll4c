@@ -4,6 +4,7 @@
 #include "cmd3_async_log_usage.h"
 #include "cmd4_demo_sync_mode.h"
 #include "cmd5_demo_async_mode.h"
+#include "cmd6_benchmark.h"
 #include "cmd_version.h"
 #include <stdlib.h>
 
@@ -25,6 +26,9 @@ int main(int argc, char **argv) {
   }
   if (isOnlyCliArgPresent("--cmd5", "-c5", argc, argv)) {
     handleCmd5();
+  }
+  if (isOnlyCliArgPresent("--cmd6", "-c6", argc, argv)) {
+    handleCmd6();
   }
 
   return EXIT_SUCCESS;

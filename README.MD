@@ -1,6 +1,10 @@
 # Logging library for C - (LL4C)
 
-C logging library which I use for my other C projects.
+Logging library for C with async and sync modes which I use for my other C projects, especially for graphic programming
+
+## Problem which this project solves
+
+Logging logic inside render function in graphic programming (OpenGL/Vulkan). Default approach with `printf` is extremely bad inside render function because it is an IO operation and triggers context switching. This project solves this problem with async mode. See [Benchmark](#benchmark)
 
 ## Integration
 
@@ -120,6 +124,21 @@ Output:
 ## Changelog
 
 See [CHANGELOG.MD](./CHANGELOG.MD)
+
+## Benchmark
+
+### Benchmark 1 sync vs. async execution time - caller's perspective
+
+[./testbed/src/cmd6_benchmark.c](./testbed/src/cmd6_benchmark.c)
+
+| Mode | Iterations | Time taken in millis |
+| :--- | :--- | :--- |
+| Sync | 1000000 | 19374.9005 |
+| Async | 1000000 | 1771.0027 |
+| Sync | 500000 | 11056.9147 |
+| Async | 500000 | 856.4132 |
+| Sync | 100000 | 2388.6567 |
+| Async | 100000 | 180.3441 |
 
 ## Setup dev env
 

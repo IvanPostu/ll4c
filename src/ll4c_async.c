@@ -176,6 +176,10 @@ void startup_ThreadUnsafe(PtrLogCallback logCallback, unsigned long waitMs) {
 }
 
 void shutdown_ThreadUnsafe(void) {
+  if (!_GlobalState.isInitialized) {
+    return;
+  }
+
   LogWorkerState *logWorkerState = _GlobalState.logWorkerState;
   pthread_t *worker_thread = &_GlobalState.worker_thread;
   LinkedListBox *published = logWorkerState->published;
