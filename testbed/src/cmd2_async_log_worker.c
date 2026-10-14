@@ -33,14 +33,17 @@ typedef struct {
 } LogWorkerState;
 
 void mutexInit(pthread_mutex_t *mutex) {
-  if (pthread_mutex_init(mutex, NULL) != 0) {
-    perror("Mutex initialization failed");
-    exit(1);
+  int result = pthread_mutex_init(mutex, NULL);
+  if (result != 0) {
+    fprintf(stderr, "Failed to initialize mutex: %s (Error code: %d)\n", strerror(result), result);
   }
 }
 
 void mutexRelease(pthread_mutex_t *mutex) {
-  pthread_mutex_destroy(mutex);
+  int result = pthread_mutex_destroy(mutex);
+  if (result != 0) {
+    fprintf(stderr, "Failed to destroy locked mutex: %s (Error code: %d)\n", strerror(result), result);
+  }
 }
 
 // 0 OK
