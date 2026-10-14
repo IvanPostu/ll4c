@@ -43,7 +43,7 @@ static void logCallback(
     output = stderr;
   }
 
-  fprintf(output, "[%s](%s:%d): %s\n", logLevelStr, codeFilename, codeLine, formattedMessage);
+  fprintf(output, "[%s] (%s:%d): %s\n", logLevelStr, codeFilename, codeLine, formattedMessage);
 }
 
 void handleCmd4(void) {
