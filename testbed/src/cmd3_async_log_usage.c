@@ -50,5 +50,6 @@ void handleCmd3(void) {
     }
   }
 
+  ll4cShutdownAsyncMode();
   exit(EXIT_SUCCESS);
 }

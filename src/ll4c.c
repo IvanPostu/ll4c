@@ -18,6 +18,13 @@
 #  define VSNPRINTF vsnprintf
 #endif
 
+const char *LOG_LEVELS_AS_STRINGS[6] = {"FATAL",
+                                        "ERROR",
+                                        "WARN",
+                                        "INFO",
+                                        "DEBUG",
+                                        "TRACE"};
+
 #define CACHE_LENGTH 2048
 static char CACHE_STR[CACHE_LENGTH];
 

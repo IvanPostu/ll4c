@@ -58,6 +58,8 @@ if(BUILD_TESTBED)
     testbed/src/cmd1_log_example.c
     testbed/src/cmd2_async_log_worker.c
     testbed/src/cmd3_async_log_usage.c
+    testbed/src/cmd4_demo_sync_mode.c
+    testbed/src/cmd5_demo_async_mode.c
   )
   target_include_directories(ll4c_testbed PRIVATE testbed/src)
   target_link_libraries(ll4c_testbed PRIVATE ll4c)

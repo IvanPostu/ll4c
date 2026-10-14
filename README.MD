@@ -19,9 +19,13 @@ C logging library which I use for my other C projects.
 
 ### Usage - synchronous mode
 
+[./testbed/src/cmd4_demo_sync_mode.c](./testbed/src/cmd4_demo_sync_mode.c)
+
 ```c
+#include "cmd4_demo_sync_mode.h"
 #include "ll4c.h"
-// ...
+#include <stdio.h>
+#include <stdlib.h>
 
 static void logCallback(
     LogLevel level,
@@ -38,12 +42,12 @@ static void logCallback(
   fprintf(output, "[%s](%s:%d): %s\n", logLevelStr, codeFilename, codeLine, formattedMessage);
 }
 
-void example(void) {
+void handleCmd4(void) {
   ll4cRegisterLogCallback(logCallback);
 
   int n = 123;
   L_TRACE("Example %d", n);
-  L_DEBUG("Example %d", n);
+  L_DEBUG("Example %s", "test");
   L_INFO("Example %d", n);
   L_WARN("Example %d", n);
   L_ERROR("Example %d", n);
@@ -53,11 +57,24 @@ void example(void) {
 }
 ```
 
+Output:
+
+```txt
+[TRACE] (cmd4_demo_sync_mode.c:25): Example 123
+[DEBUG] (cmd4_demo_sync_mode.c:26): Example test
+...
+```
+
 ### Usage - asynchronous mode
 
+[testbed/src/cmd5_demo_async_mode.c](./testbed/src/cmd5_demo_async_mode.c)
+
 ```c
+#include "cmd5_demo_async_mode.h"
 #include "ll4c.h"
-// ...
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 static void logCallback(
     LogLevel level,
@@ -71,24 +88,33 @@ static void logCallback(
     output = stderr;
   }
 
-  fprintf(output, "[%s](%s:%d): %s\n", logLevelStr, codeFilename, codeLine, formattedMessage);
+  fprintf(output, "[%s] (%s:%d): %s\n", logLevelStr, codeFilename, codeLine, formattedMessage);
 }
 
-void example(void) {
+void handleCmd5(void) {
   ll4cRegisterLogCallback(logCallback);
   bool asyncEnabled = ll4cStartupAsyncMode();
   assert(asyncEnabled);
 
   int n = 123;
   L_TRACE("Example %d", n);
-  L_DEBUG("Example %d", n);
+  L_DEBUG("Example %s", "test");
   L_INFO("Example %d", n);
   L_WARN("Example %d", n);
   L_ERROR("Example %d", n);
   L_FATAL("Example %d", n);
 
+  ll4cShutdownAsyncMode();
   exit(EXIT_SUCCESS);
 }
+```
+
+Output:
+
+```txt
+[TRACE] (cmd4_demo_sync_mode.c:25): Example 123
+[DEBUG] (cmd4_demo_sync_mode.c:26): Example test
+...
 ```
 
 ## Changelog
@@ -113,5 +139,5 @@ cmake --build ./build --config Debug
 cmake --build ./build --config Debug --clean-first --verbose
 
 # run
-./build/ll4c_testbed --cmd1
+./build/ll4c_testbed --cmd4
 ```
